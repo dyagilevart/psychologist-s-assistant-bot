@@ -1,1 +1,3 @@
-# psychologist-s-assistant-bot
+for start:
+
+docker compose up
