@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Telegraf } from 'telegraf';
-import { message } from 'telegraf/filters';
+import { RegistrationService } from './RegistrationModule/registration.service';
 
 @Injectable()
 export class TelegrambotService {
@@ -10,7 +10,10 @@ export class TelegrambotService {
     return this._bot;
   }
 
-  constructor(config: ConfigService) {
+  constructor(
+    config: ConfigService,
+    public registration: RegistrationService,
+  ) {
     const token: string | undefined = config.get('token');
 
     if (token) {
@@ -21,11 +24,33 @@ export class TelegrambotService {
   }
 
   init() {
-    this._bot.start((ctx) => ctx.reply('Welcome'));
-    this._bot.help((ctx) => ctx.reply('Send me a sticker'));
-    this._bot.on(message('sticker'), (ctx) => ctx.reply('👍'));
-    this._bot.hears('hi', (ctx) => ctx.reply('Hey there'));
-    this._bot.launch();
+    this._bot.start(async (ctx) => {
+      void ctx.reply('Привет!');
+      if (await this.registration.isUserAlreadyRegistered(ctx.message.from)) {
+        void ctx.reply('Я тебя знаю');
+      } else {
+        void ctx.reply('Please send your contact by pressing your contact', {
+          reply_markup: {
+            keyboard: [
+              [
+                {
+                  text: '📲 Send phone number',
+                  request_contact: true,
+                },
+              ],
+            ],
+            one_time_keyboard: true,
+          },
+        });
+        this._bot.on('contact', (ctx) => {
+          void this.registration.register({
+            id: ctx.message.from.id,
+            phone: ctx.message.contact.phone_number,
+          });
+        });
+      }
+    });
+    void this._bot.launch();
 
     // Enable graceful stop
     process.once('SIGINT', () => this._bot.stop('SIGINT'));

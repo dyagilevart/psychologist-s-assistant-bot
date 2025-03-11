@@ -1,5 +1,4 @@
-export class CreateClintDto {
-  owner: string;
-  place: string;
-  temporary: boolean;
+export class CreateUserDto {
+  userId: number;
+  phone?: string;
 }
