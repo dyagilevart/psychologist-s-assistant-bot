@@ -14,7 +14,7 @@ export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   getUser(userId: number) {
-    return this.userModel.find({ userId: userId });
+    return this.userModel.findOne({ userId: userId });
   }
 
   async setUser(createUserDto: CreateUserDto): Promise<User> {

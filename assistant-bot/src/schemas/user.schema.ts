@@ -9,7 +9,13 @@ export class User {
   userId: number;
 
   @Prop()
+  name: string;
+
+  @Prop()
   phone: string;
+
+  @Prop({ default: false })
+  isAdmin: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

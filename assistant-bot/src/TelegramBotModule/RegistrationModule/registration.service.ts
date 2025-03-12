@@ -7,7 +7,7 @@ export class RegistrationService {
   constructor(private userService: UserService) {}
 
   async isUserAlreadyRegistered(user: UserDto) {
-    if ((await this.userService.getUser(user.id)).length === 1) {
+    if (await this.userService.getUser(user.id)) {
       return true;
     }
     return false;
