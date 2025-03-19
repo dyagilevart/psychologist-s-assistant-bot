@@ -6,8 +6,8 @@ import { UserService } from 'src/DatabaseModule/UserModule/user.service';
 export class RegistrationService {
   constructor(private userService: UserService) {}
 
-  async isUserAlreadyRegistered(user: UserDto) {
-    if (await this.userService.getUser(user.id)) {
+  async isUserAlreadyRegistered(userId: number) {
+    if (await this.userService.getUser(userId)) {
       return true;
     }
     return false;

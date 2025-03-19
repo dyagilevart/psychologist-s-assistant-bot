@@ -11,7 +11,7 @@ import { UserService } from './UserModule/user.service';
 export class TelegrambotService {
   private currentScene = new Scenes.BaseScene<TelegramContext>(Scene.INIT);
 
-  _bot: Telegraf;
+  _bot: Telegraf<TelegramContext>;
   public get bot() {
     return this._bot;
   }
@@ -30,23 +30,45 @@ export class TelegrambotService {
     }
   }
 
+  initScene() {
+    this.currentScene.enter((ctx) => {
+      console.log('FIRST SCENE', ctx);
+    });
+  }
+
+  startBot() {
+    this.initScene();
+
+    const stages = new Scenes.Stage<TelegramContext>([this.currentScene]);
+    this.bot.use(session());
+    this.bot.use(stages.middleware());
+
+    this.bot.start((ctx) => ctx.scene.enter(Scene.INIT));
+
+    void this._bot.launch();
+
+    // Enable graceful stop
+    process.once('SIGINT', () => this._bot.stop('SIGINT'));
+    process.once('SIGTERM', () => this._bot.stop('SIGTERM'));
+  }
+
   init() {
     this._bot.start(async (ctx) => {
-      this.bot.use(session());
-
-      if (await this.registration.isUserAlreadyRegistered(ctx.message.from)) {
+      if (await this.registration.isUserAlreadyRegistered(ctx.message.from.id)) {
         if (await this.adminService.isAdmin(ctx.message.from.id)) {
           const stage = new Scenes.Stage<TelegramContext>([
             AdminService.currentScene,
           ]);
+          this._bot.use(session());
           this._bot.use(stage.middleware());
-          Scenes.Stage.enter(Scene.ADMIN_CONSOLE);
+          ctx.scene.enter(Scene.ADMIN_CONSOLE);
         } else {
           const stage = new Scenes.Stage<TelegramContext>([
             UserService.currentScene,
           ]);
+          this._bot.use(session());
           this._bot.use(stage.middleware());
-          Scenes.Stage.enter(Scene.USER_CONSOLE);
+          ctx.scene.enter(Scene.USER_CONSOLE);
         }
       } else {
         void ctx.reply('Please send your contact by pressing your contact', {
@@ -70,10 +92,18 @@ export class TelegrambotService {
         });
       }
     });
-    void this._bot.launch();
-
-    // Enable graceful stop
-    process.once('SIGINT', () => this._bot.stop('SIGINT'));
-    process.once('SIGTERM', () => this._bot.stop('SIGTERM'));
   }
+
+  // test() {
+  //   startScene.enter((ctx) => {
+  //     console.log('FIRST SCENE', ctx);
+  //   });
+
+  //   const stages = new Scenes.Stage<TelegramContext>([startScene]);
+  //   this.bot.use(session());
+  //   this.bot.use(stages.middleware());
+
+  //   this.bot.start((ctx) => ctx.scene.enter('SceneInitial'));
+  //   this.bot.launch();
+  // }
 }
