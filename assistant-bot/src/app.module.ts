@@ -1,4 +1,4 @@
-import { UserModule as DatabaseUserModule } from './DatabaseModule/UserModule/user.module';
+import { BusinessModule } from './BusinessModule/business.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import dbConfig from './config/db.config';
@@ -9,9 +9,7 @@ import { TelegramModule } from './TelegramModule/telegram.module';
 
 @Module({
   imports: [
-
-    DatabaseUserModule,
-
+    BusinessModule,
     ConfigModule.forRoot({
       load: [dbConfig, teleramConfig],
     }),
